@@ -9,3 +9,4 @@ print(np.max(a,axis=0).size)
 
 print(np.max(a,axis=0).reshape(1,-1))
 
+print(a-np.max(a,axis=1).reshape(1,-1))

@@ -33,7 +33,7 @@ dW = np.zeros_like(W)
     scores_shift = scores - np.max(scores)
     right_class = y[i]
     
-    #计算对数soft max 损失函数
+    #计算对数soft max 损失函数,
     loss += -scores_shift[right_class] + np.log(np.sum(np.exp(scores_shift)))
     #get gradient
     for j in range(num_classes):
@@ -63,16 +63,27 @@ def softmax_loss_vectorized(W, X, y, reg):
 
   #这一步注意max的用法,参见exercise
   #axis = 1 取出每行的最大值,也就是对应每个样本(每一行)的所有feature中值最大的那一个,然后reshape成矩阵
+  #遍历每一列的所有元素都减去相应位置的最大值,因为这里reshape成列
   scores_shift = scores - np.max(scores, axis = 1).reshape(-1,1)
 
-
   #这里的乘法和除法都对应的   element wise!!
-  
+
+  #sum对每一行求和,然后对每一列的scores_shitft元素相除
   softmax_output = np.exp(scores_shift) / np.sum(np.exp(scores_shift), axis=1).reshape(-1,1) 
+  
+  #首先range取出所有行,然后取出每个y[i]对应真实标签的列,根据loss function的定义,十分简介.
   loss = -np.sum(np.log(softmax_output[range(num_train), list(y)]))
+  #正则化
   loss /= num_train loss += 0.5 * reg * np.sum(W * W) 
-  dS = softmax_output.copy() 
+  dS = softmax_output.copy()
   dS[range(num_train), list(y)] += -1 
-  dW = (X.T).dot(dS) 
+  dW = (X.T).dot(dS)
   dW = dW / num_train + reg * W 
   return loss, dW
+
+
+#注意怎么测试时间,正则化因子很小,%e,%f输出
+tic = time.time() 
+loss_naive, grad_naive = softmax_regreesion_v1(W, X_train, y_train, 0.000005) 
+toc = time.time() 
+print('naive loss: %e computed in %fs' % (loss_naive, toc - tic))

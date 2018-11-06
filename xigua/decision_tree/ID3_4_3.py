@@ -9,6 +9,10 @@ class Node(object):
         self.attr_down=attr_down_init
         self.label=label_init
 
+
+
+
+
 '''
 @para label_arr:
 @return different_label and it's 
@@ -30,7 +34,7 @@ def InfoEnt(label_arr):
     label_count
     for label in label_arr:
         Ent-=(label_count)
-
+    
 
 '''
 @para
