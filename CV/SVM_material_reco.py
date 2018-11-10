@@ -22,7 +22,7 @@ def svm_solve(x,y,cas):
     #metrics是评估模块，例如准确率等
     from sklearn import metrics
     from sklearn.model_selection import cross_val_predict
-    
+
     clf=svm.SVC(C=32,gamma=0.5,kernel='rbf',decision_function_shape='ovo')
     #10折交叉验证,cross_val_predict返回的是estimator的分类结果，用于和实际数据比较
     y_pred=cross_val_predict(clf,x,y,cv=10)
@@ -60,7 +60,7 @@ def write_data(feature,label,path):
         for i in lf:
             sf=sf+' '+str(cnt)+':'+i
             cnt+=1
-        f.write('6 '+sf+'\n')
+        f.write(str(label)+' '+sf+'\n')
     '''
     #输出csv的逗号表达式的数据
     with open(path,"a+") as f:
@@ -105,7 +105,7 @@ def get_feature(pic):
     '''
 
     im_array = add_noisy(im_array,N,M,"Guass",60)
-    
+
     for y in range (0,N):
         for x in range (0,M):
             for dx in range (-1,2):
@@ -180,10 +180,10 @@ if __name__=='__main__':
     import pandas as pd
     import random
     #完成特征提取的函数
-    get_data("/home/li/ML/CV/data/","Oridata_sigma_60.csv")
-    path ='Oridata_sigma_60.csv'
-    #x,y = read_data(path)
-    #svm_solve(x,y,2)
+    #get_data("/home/li/ML/CV/data/","Oridata_sigma_60_lib.csv")
+    path ='Oridata_sigma_50.csv'
+    x,y = read_data(path)
+    svm_solve(x,y,2)
     '''
     for i in range(-1,3):
         if i>=0:
