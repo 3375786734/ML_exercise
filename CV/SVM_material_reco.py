@@ -181,7 +181,7 @@ if __name__=='__main__':
     import random
     #完成特征提取的函数
     #get_data("/home/li/ML/CV/data/","Oridata_sigma_60_lib.csv")
-    path ='Oridata_sigma_50.csv'
+    path = 'test1.csv'#'Oridata_sigma_50.csv'
     x,y = read_data(path)
     svm_solve(x,y,2)
     '''

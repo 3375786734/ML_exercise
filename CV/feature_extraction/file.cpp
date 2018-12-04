@@ -1,23 +1,9 @@
-/*
- *
- */
-#include <cstdio>
-#include <cstring>
 #include <algorithm>
 #include <functional>
 #include <dirent.h>
 #include <iostream>
 #include <vector>
-#include <opencv2/core/core.hpp>  
-#include <opencv2/highgui/highgui.hpp>  
-#include <cmath>
-#define MEM(a,num) memset(a,num,sizeof(a))
-
-using namespace cv;
-const int maxc=256;
-const int maxn=500;
-const double inf = 1e20;
-
+#include <cstring>
 using namespace std;
 
 using file_filter_type = function<bool (const char *,const char *)>;
@@ -56,8 +42,8 @@ vector<string> for_each_file(const string &dir_name,file_filter_type filter,bool
 				}
 			}
 			if(!sub||!is_folder(p)){
-				if(strcmp(ent->d_name,"..") == 0|| strcmp(ent->d_name,".")==0)
-					continue;
+				if(0 == strcmp(ent->d_name,"..")||0 == strcmp(ent->d_name,"."))
+						continue;
 				if(filter(dir_name.data(),ent->d_name))
 					v.emplace_back(p);
 			}
@@ -67,36 +53,23 @@ vector<string> for_each_file(const string &dir_name,file_filter_type filter,bool
 	return v;
 }
 const file_filter_type default_ls_filter = [](const char *,const char *){return true;};
-//使用hash opt.
-double hash[maxc];
-inline void init_hash(double gamma){
-	for(int i =0;i<maxc;i++)
-		hash[i] = pow(i,gamma);
+/*
+class Trie{
+public:
+	void build_trie(vector<string> dir)
+	{
+		init();
+		for(int i=0;i<dir.size();i++)
+			insert(dir[i]);
+	}
 }
-void GammaTrans(IplImage *img,double gamma)
-{
-	int n = img->height;
-	int m = img->width;
-	double tmp[maxn][maxn];
-	init_hash(gamma);
-	for(int i=0;i<n;i++)
-		for(int j =0;j<m;j++)
-			tmp[i][j] = cvGet2D(img,i,j).val[0];
-	for(int i=0;i<n;i++)
-		for(int j =0;j<m;j++)
-			cvSet2D(img,i,j,(int)hash[tmp[i][j]]);
-}
-void get_HOG(IplImage * img,double * feature)
-{
-	int n = img->height;
-	int m = img->width;
-	int dx = , dy = ;
-
-}
+*/
 int main()
 {
-	IplImage *ori_img = cvReadImage("img.png");
-	GammaTrans(ori_img,0.5);
-	double feature[maxf];
-	get_HOG(ori_img,feature);	
+	string path = "te";
+	vector<string> dir;
+	dir = for_each_file(path,default_ls_filter,true);
+	if(dir.size()==0)printf("no such dir");
+	for(int i=0;i<dir.size();i++)
+		cout<<dir[i]<<endl;
 }
