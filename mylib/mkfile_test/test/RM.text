@@ -1,0 +1,7 @@
+编译选项 :  
+
+g++ -g test.cpp -L. mylib.a
+
+
+MakeFile 编译:
+
