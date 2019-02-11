@@ -8,13 +8,14 @@
 #include <opencv2/core/core.hpp>  
 #include <opencv2/highgui/highgui.hpp>  
 #include <cmath>
+#include <random>
 #define MEM(a,num) memset(a,num,sizeof(a))
 
 using namespace cv;
 const int maxc=256;
 const int maxn=500;
 const double inf = 1e20;
-
+typedef long long ll;
 using namespace std;
 
 using file_filter_type = function<bool (const char *,const char *)>;
@@ -113,30 +114,113 @@ void get_LBP(IplImage *img,double *feature)
 		if(feature[i]>Mf)Mf = feature[i];
 		if(feature[i]<mf)mf = feature[i];
 	}
-	trans_feature(feature,mf,Mf);
+	//trans_feature(feature,mf,Mf);
 }
-int main()
+string int2str(int a)
 {
-	//IplImage *ori_img = cvLoadImage("1.png",CV_LOAD_IMAGE_GRAYSCALE);
-	//cvShowImage("Ori",ori_img);
-	freopen("test2.csv","w+",stdout);
-	//for(int i=0;i<257;i++)printf("%d%c",i,i==256?'\n':',');
+	string tmp;
+	int sz = 0;
+	while(a){
+		tmp.insert(sz,1,a%10+'0'); a/=10;sz++;
+	}
+	reverse(tmp.begin(),tmp.end());
+	return tmp;
+}
+void Guassian_Smooth(IplImage *inm,IplImage *outm,double mean,double stddev,int cnt)
+{
+	int n = inm->height;
+	int m = inm->width;
+	int tmp[n][m];
+	default_random_engine generator ;
+	normal_distribution<double> dist(mean,stddev);
+	
+	for(int i =0;i<n;i++)
+		for(int j =0;j<m;j++){
+			double noi = dist(generator);
+			//printf("noi %lf\n",noi);
+			tmp[i][j] =(int)(cvGet2D(inm,i,j).val[0]+noi);
+		}
+	for(int i=0;i<n;i++)
+		for(int j= 0;j<m;j++){
+			if(tmp[i][j]>=0&&tmp[i][j]<256)cvSet2D(outm,i,j,tmp[i][j]);
+			else if(tmp[i][j]<0) cvSet2D(outm,i,j,0);
+			else cvSet2D(outm,i,j,255);
+		}
+	string id = int2str(cnt);
+}
+/*
+void add_some_noisy()
+{
 	string path = "../data";
+	vector<string> dir = for_each_file(path,default_ls_filter,false);
+	int cnt = 0;
+	for(string subdir:dir){
+		cnt++;
+		vector<string> subsubdir = for_each_file(subdir,default_ls_filter,false);
+		string img_path = subsubdir[0];
+		cout<<"path is :"<<img_path<<endl;
+		IplImage *ori_img = cvLoadImage(img_path.data(),CV_LOAD_IMAGE_GRAYSCALE);
+		string cc = int2str(cnt);
+		cvShowImage(("ori_img"+cc).data(),ori_img);
+		IplImage *out_img = cvCreateImage(cvSize(ori_img->width,ori_img->height),IPL_DEPTH_8U,1);
+		Guassian_Smooth(ori_img,out_img,0,80,cnt);
+	}
+}
+*/
+void imfilter(IplImage *inm,IplImage *outm,int sz)
+{
+	int n = inm->height;
+	int m = inm->width;
+	for(int i =0;i<n;i++)
+		for(int j =0;j<m;j++){
+			double sum = 0;
+			for(int di =-sz;di<=sz;di++)
+				for(int dj = -sz;dj<=sz;dj++)
+					if(i+di>=0&&i+di<n&&j+dj>=0&&j+dj<m)sum+= cvGet2D(inm,i,j).val[0];
+			cvSet2D(outm,i,j,(int)(sum/(2*sz+1)/(2*sz+1)));
+		}
+}
+void feature_extraction(string path)
+{
+	for(int i=0;i<257;i++)printf("%d%c",i,i==256?'\n':',');
 	vector<string> dir = for_each_file(path,default_ls_filter,false);
 	int cnt = 1;
 	for(string subdir :dir){
 		vector <string> subsubdir = for_each_file(subdir,default_ls_filter,false);
 		for(string img_path :subsubdir){
 			IplImage *ori_img = cvLoadImage(img_path.data(),CV_LOAD_IMAGE_GRAYSCALE);
+			IplImage *noi_img = cvCreateImage(cvSize(ori_img->width,ori_img->height),IPL_DEPTH_8U,1);
+			IplImage *smo_img = cvCreateImage(cvSize(ori_img->width,ori_img->height),IPL_DEPTH_8U,1);
+			Guassian_Smooth(ori_img,smo_img,0,80,cnt);
+			//imfilter(noi_img,smo_img,2);
 			//if(ori_img != nullptr)printf("yes get it\n");
 			//else printf("no!\n");
 			double feature[500];
-			get_LBP(ori_img,feature);
+			get_LBP(smo_img,feature);
 			printf("%d ",cnt);
 			for(int i=0;i<maxc;i++)
+				printf("%lld%c",(ll)feature[i],i==maxc-1?'\n':' ');
+			/*
+			 * sklearn-data type
+			printf("%d",cnt);
+			for(int i=0;i<maxc;i++)
+				printf(",%lf",feature[i]);
+			printf("\n");
+			*/
+			/*
+			 *libsvm format data
+			for(int i=0;i<maxc;i++)
 				printf("%d:%.12lf%c",i+1,feature[i],i==maxc-1?'\n':' ');
+			*/
 		}
 		cnt++;
 	}
-	return 0;
+}
+int main()
+{
+	//IplImage *ori_img = cvLoadImage("1.png",CV_LOAD_IMAGE_GRAYSCALE);
+	//cvShowImage("Ori",ori_img);	
+	const string path =  "../data";
+	freopen("KNN_data_2.csv","w+",stdout);
+	feature_extraction(path);
 }
