@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import platform
-
+import csv
 class io_py(object):
     def __init__(self):
         data = []
@@ -16,8 +16,8 @@ class io_py(object):
         return suffix
 
     def read_data(self,path,op):
-        print("here")
         suffix = self.__get_suffix(path)
+        print("Suffix is",suffix)
         if suffix=="csv" :
             return (self.__csv2pd(path) if op=="pd" else np.array(self.__csv2pd(path)))
         elif suffix == "parquet":
@@ -36,3 +36,8 @@ class io_py(object):
         except:
             print("Can't find"+path)
             return pd.DataFrame(None)
+    def write_data(self,path,data,op):
+        if op == 'csv':
+            with open(path,"w") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerows(data)

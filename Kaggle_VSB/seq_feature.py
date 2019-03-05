@@ -5,10 +5,11 @@ import tqdm as tqdm
 We'd better extract feature as matrix data.
 
 @describ: a objec which will extract feature
+@para:one onject per raw,if column,please transpose it first.
 '''
 class feature_extracter(object):
     def __init__(self,raw_data,data_info):
-        self.__raw_data = np.array(raw_data)
+        self.__raw_data = np.transpose(np.array(raw_data))
         self.__data_info = data_info
     def printdata(self):
         print(self.__data_info.info())
@@ -30,16 +31,12 @@ class feature_extracter(object):
         mean,std,statistical_range(that is mean +- std), percentil,we can change
         this block when case differ.
         '''
-        print(idata)
-        print("here")
         std_data = self.__min_max_regu(idata,range_needed)
         data_len = len(std_data)
-        block_size = data_len//block
-        print("data_len {},block_size {}".format(std_data.shape,block_size))
+        block_size =data_len//block
         feature = []
         for start_point in range(0,data_len,block_size):
-            std_data_block = std_data.loc[start_point:start_point+block_size]
-            print("wowowowo")
+            std_data_block = std_data[start_point:start_point+block_size]
             mean = std_data_block.mean()
             std = std_data_block.std()
             std_top,std_bot = mean+std,mean-std
@@ -65,25 +62,21 @@ class feature_extracter(object):
     '''
     def get_feature_1(self):
         data_len = len(self.__raw_data)
-        truncate_num = 2
-        truncate_size = int(data_len//truncate_num)
-        feature,label = [],[]
-        '''
-        To avoid RAM exceeded ,we truncate the whole dataset into two parts.
-        '''
-        for sp in range(0,data_len,truncate_size):
-            raw_block = self.__raw_data[:,sp:truncate_size+sp]
-            for id_needed  in tqdm.tqdm(range(sp,truncate_size+sp,3)):
-                tmp = []
-                for phase in [0,1,2]:
-                    now_id = id_needed + phase
-                    print("now at {} current phase is {} now id is {}".format(id_needed//3,phase,label,now_id))
-                    if phase == 0:
-                        label.append(self.__data_info.loc[now_id].loc['target'])
-                        print("label is {}".format(__data_info.loc[now_id].loc['target']))
-                    #return size = 3*seq_len*feat_per_line
-                    print("block shape",raw_block.shape)
-                    tmp.append(self.__my_feature_extraction_1(raw_block[:,]))
-                np.concatenate(tmp,axis = 1)#return size = seq_len*feat_three_line
-                feature.append(tmp)
+        feature,label,sp = [],[],0
+        for id_needed  in tqdm.tqdm(range(sp,data_len+sp,3)):
+            tmp = []
+            for phase in [0,1,2]:
+                now_id = id_needed + phase
+                print("now at {} current phase is {} now id is {}".format(id_needed//3,phase,label,now_id))
+                if phase == 0:
+                    label.append(self.__data_info.loc[now_id].loc['target'])
+                    #print("label is {}".format(self.__data_info.loc[now_id].loc['target']))
+                #return size = 3*seq_len*feat_per_line
+                #print("block shape",self.__raw_data.shape)
+                tmp.append(self.__my_feature_extraction_1(self.__raw_data[now_id]))
+            #print("tmp size is ",np.array(tmp).shape)
+            tmp = np.concatenate(tmp,axis = 1)#return size = seq_len*feat_three_line
+            #print("tmp after con",np.array(tmp).shape)
+            feature.append(tmp)
+            #print("feature size is",np.array(feature).shape)
         return np.asarray(feature),np.asarray(label)
