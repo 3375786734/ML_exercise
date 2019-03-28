@@ -36,7 +36,7 @@ def svm_loss_naive(W, X, y, reg):
         loss += margin
         dW[:,j] += X[i].T
         dW[:,y[i]] += -X[i].T
-  
+        
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
@@ -71,7 +71,9 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  loss += reg*np.
+    
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
