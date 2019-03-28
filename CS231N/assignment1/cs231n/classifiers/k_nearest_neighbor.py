@@ -161,7 +161,8 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      y_pred[i] = closest_y[0]
+      #y_pred[i] = closest_y[0]
+      y_pred[i] = np.argmax(np.bincount(closest_y))
       #pass
       #########################################################################
       # TODO:                                                                 #
