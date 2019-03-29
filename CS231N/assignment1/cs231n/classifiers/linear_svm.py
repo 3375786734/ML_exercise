@@ -46,7 +46,6 @@ def svm_loss_naive(W, X, y, reg):
   loss += reg * np.sum(W * W)
   dW   += reg*W
   #############################################################################
-  # TODO:                                                                     #
   # Compute the gradient of the loss function and store it dW.                #
   # Rather that first computing the loss and then computing the derivative,   #
   # it may be simpler to compute the derivative at the same time that the     #
@@ -67,20 +66,12 @@ def svm_loss_vectorized(W, X, y, reg):
   dW = np.zeros(W.shape) # initialize the gradient as zero
 
   #############################################################################
-  # TODO:                                                                     #
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  loss += reg*np.
-    
-
+  loss =  
+  loss += reg*np.sum(W*W)
   #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
-
-  #############################################################################
-  # TODO:                                                                     #
   # Implement a vectorized version of the gradient for the structured SVM     #
   # loss, storing the result in dW.                                           #
   #                                                                           #
@@ -88,9 +79,5 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
+  
   return loss, dW
