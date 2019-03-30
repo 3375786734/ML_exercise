@@ -22,24 +22,25 @@ def softmax_loss_naive(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-  
+
   num_data,num_class = X.shape[0],W.shape[1]
   #############################################################################
-  # TODO:                                                                     #
   #       Compute the softmax loss and its gradient using explicit loops.     #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
   for i in range(num_data):
-    score = X[i].dot(W)
-    exp_score = np.exp(score)
-    loss += np.log(np.sum(exp_score)) - score[y[i]]
-    dW[:,y[i]] += -X[i].T
-    for j in range(num_class):
-        dW[:,j] += ((X[i]*np.exp(X[i].dot(W)))/np.sum(exp_score)).T
+      score = X[i].dot(W)
+      score -= max(score)  #stablebility
+      exp_score = np.exp(score)
+      loss += np.log(np.sum(exp_score)) - score[y[i]]
+      dW[:,y[i]] -= X[i].T
+      for j in range(num_class):
+          dW[:,j] += (X[i].T)*(exp_score[j]/np.sum(exp_score))
+  loss = loss/num_data + reg*np.sum(W*W)
+  dW = dW/num_data + reg*W
   return loss, dW
-
 
 def softmax_loss_vectorized(W, X, y, reg):
   """
@@ -50,13 +51,21 @@ def softmax_loss_vectorized(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
+  num_class, num_data  = W.shape[1],X.shape[0]
   #############################################################################
-  # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
+  #Compute the softmax loss and its gradient using no explicit loops.         #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  
-  return loss, dW
+  score_matrix = X.dot(W)
+  C_score = score_matrix - np.max(score_matrix,axis = 1).reshape(-1,1) #since we sum over axis ,hence we get all the column maximum for each coulmn
+  exp_score = np.exp(C_score)/np.sum(np.exp(C_score),axis = 1).reshape(-1,1)
+  #sum all the y_i
+  loss = -np.sum(np.log(exp_score[range(num_data),list(y)]))/num_data + reg*np.sum(W*W)
 
+
+  id_matrix = exp_score
+  id_matrix[range(num_data),list(y)] += -1
+  dW = (X.T).dot(id_matrix)/num_data + reg*W
+  return loss, dW
