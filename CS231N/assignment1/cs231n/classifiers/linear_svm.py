@@ -64,13 +64,16 @@ def svm_loss_vectorized(W, X, y, reg):
   """
   loss = 0.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
-
+  num_class,num_data = X.shape[1],X.shape[0]
   #############################################################################
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  loss =  
-  loss += reg*np.sum(W*W)
+  score = X.dot(W) 
+  true_score = score[range(num_data),list(y)].reshape(-1,1)  #choose all the (i,y_i) reshape it to a column vector since next step needs column vector
+  margin = np.maximum(0,score-true_score+1)
+  margin[range(num_data),list(y)] = 0   #constraint  $j \ne y_i$ ,when sum(axis =1) ,the margin in y_i-column will b zero
+  loss  np.sum(margin)/num_data+0.5*reg*np.sum(W*W)
   #############################################################################
   # Implement a vectorized version of the gradient for the structured SVM     #
   # loss, storing the result in dW.                                           #
@@ -80,4 +83,10 @@ def svm_loss_vectorized(W, X, y, reg):
   # loss.                                                                     #
   #############################################################################
   
+  #IDEA: see the representation for m-row,n-column of dW.The high level idea is to see if no constaint how will the equation looks like,then we set all the place which has constraint be zero.
+  id_matrix = np.zeros(zeros(num_data,num_class))
+  id_matrix[margin>0] = 1
+  id_matrix[range(num_train),list(y)] = -np.sum(id_matrix,axis = 1)
+  dW = X.T.dot(id_matrix)
+
   return loss, dW
