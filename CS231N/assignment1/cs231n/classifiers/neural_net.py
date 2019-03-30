@@ -7,6 +7,8 @@ class TwoLayerNet(object):
   """
   A two-layer fully-connected neural network. The net has an input dimension of
   N, a hidden layer dimension of H, and performs classification over C classes.
+  
+  
   We train the network with a softmax loss function and L2 regularization on the
   weight matrices. The network uses a ReLU nonlinearity after the first fully
   connected layer.
@@ -75,10 +77,9 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
+    O1 = max(0,X.dot(W1)+b1) 
+    scores = max(0,O1.dot(W2)+b2)
+    
     
     # If the targets are not given then jump out, we're done
     if y is None:
@@ -92,11 +93,11 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
-
+    C_score = scores - np.max(scores,axis = 1).reshape(-1,1)
+    exp_score = np.exp(C_score)
+    Smax_loss = exp_score/np.sum(exp_score,axis = 1).reshape(-1,1)
+    loss = -np.sum(Smax_loss[range(num_data),list(y)])+reg*(np.sum(W1*W1)+np.sum(W2*W2))
+    
     # Backward pass: compute gradients
     grads = {}
     #############################################################################
@@ -104,10 +105,10 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
-    #############################################################################
-    #                              END OF YOUR CODE                             #
-    #############################################################################
+    grads['W1'] = 
+    grads['W2'] = 
+    grads['b1'] = 
+    grads['b2'] = 
 
     return loss, grads
 

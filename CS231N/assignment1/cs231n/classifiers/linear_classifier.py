@@ -85,10 +85,10 @@ class LinearClassifier(object):
     ###########################################################################
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    fx = X.dot(W)
+    fx = X.dot(self.W)
     exp_sc = fx - np.max(fx,axis = 1).reshape(-1,1)
     exp_sc = exp_sc/np.sum(exp_sc,axis = 1).reshape(-1,1)
-    y_pred = np.argmax(fx,axis = 1)
+    y_pred = np.argmax(exp_sc,axis = 1)
     return y_pred
   
   def loss(self, X_batch, y_batch, reg):
