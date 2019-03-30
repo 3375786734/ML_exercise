@@ -86,7 +86,8 @@ def svm_loss_vectorized(W, X, y, reg):
   #IDEA: see the representation for m-row,n-column of dW.The high level idea is to see if no constaint how will the equation looks like,then we set all the place which has constraint be zero.
   id_matrix = np.zeros((num_data,num_class))
   id_matrix[margins>0] = 1
+  id_matrix[range(num_data),list(y)] = 0
   id_matrix[range(num_data),list(y)] = -np.sum(id_matrix,axis = 1)
-  dW = (X.T).dot(id_matrix)/num_data  + reg*W
+  dW = ((X.T).dot(id_matrix))/num_data  + reg*W
   
   return loss, dW
