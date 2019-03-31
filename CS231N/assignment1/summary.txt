@@ -1,0 +1,3 @@
+1. Note that: All the data are in row vector form.Hence in almost all the model except KNN we represent the linear score as X.dot(W) instead of Wx (if x is column vector that is true)
+
+2. Since all the X is row vector,the output for each data is row vector also.Hence the mathmetical result is some different from implementation,The idea is just replace right multiplication with left multiplication

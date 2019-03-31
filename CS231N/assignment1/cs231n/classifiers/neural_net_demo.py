@@ -1,14 +1,11 @@
-from __future__ import print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 class TwoLayerNet(object):
   """
   A two-layer fully-connected neural network. The net has an input dimension of
   N, a hidden layer dimension of H, and performs classification over C classes.
-  
-  
   We train the network with a softmax loss function and L2 regularization on the
   weight matrices. The network uses a ReLU nonlinearity after the first fully
   connected layer.
@@ -41,7 +38,7 @@ class TwoLayerNet(object):
     self.params['b1'] = np.zeros(hidden_size)
     self.params['W2'] = std * np.random.randn(hidden_size, output_size)
     self.params['b2'] = np.zeros(output_size)
-    
+
   def loss(self, X, y=None, reg=0.0):
     """
     Compute the loss and gradients for a two layer fully connected neural
@@ -77,11 +74,13 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    H1 = np.maximum(0,X.dot(W1)+b1)
-    scores = H1.dot(W2)+b2
-    #Note that in the last layer there is no ReLU
+    h_output = np.maximum(0, X.dot(W1) + b1) #(N,D) * (D,H) = (N,H)
+    scores = h_output.dot(W2) + b2
+    # pass
+    #############################################################################
+    #                              END OF YOUR CODE                             #
+    #############################################################################
     
-
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
@@ -92,12 +91,19 @@ class TwoLayerNet(object):
     # TODO: Finish the forward pass, and compute the loss. This should include  #
     # both the data loss and L2 regularization for W1 and W2. Store the result  #
     # in the variable loss, which should be a scalar. Use the Softmax           #
-    # classifier loss.                                                          #
+    # classifier loss. So that your results match ours, multiply the            #
+    # regularization loss by 0.5                                                #
     #############################################################################
-    #Don't forget log() before sum in softmax.
-    C_score = scores - np.max(scores,axis = 1).reshape(-1,1)
-    Smax_loss = np.exp(C_score)/np.sum(np.exp(C_score),axis = 1).reshape(-1,1)
-    loss = -np.sum(np.log(Smax_loss[range(N),list(y)]))/N+0.5*reg*(np.sum(W1*W1)+np.sum(W2*W2))
+    shift_scores = scores - np.max(scores, axis = 1).reshape(-1,1)
+    softmax_output = np.exp(shift_scores)/np.sum(np.exp(shift_scores), axis = 1).reshape(-1,1)
+    loss = -np.sum(np.log(softmax_output[range(N), list(y)]))
+    loss /= N
+    loss +=  0.5* reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
+    # pass
+    #############################################################################
+    #                              END OF YOUR CODE                             #
+    #############################################################################
+
     # Backward pass: compute gradients
     grads = {}
     #############################################################################
@@ -105,22 +111,27 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    id_matrix = Smax_loss
-    id_matrix[range(N),list(y)] -= 1
-    id_matrix /= N
-    grads['W2'] = (H1.T).dot(id_matrix) + reg*W2
-    grads['b2'] = np.sum(id_matrix,axis = 0)
+    # pass
+    dscores = softmax_output.copy()
+    dscores[range(N), list(y)] -= 1
+    dscores /= N
+    grads['W2'] = h_output.T.dot(dscores) + reg * W2
+    grads['b2'] = np.sum(dscores, axis = 0)
     
-    #If no 0.5 as coefficient for reg,here will be 2*reg*W1 instead of reg*W. Do not forget it.
+    dh = dscores.dot(W2.T)
+    dh_ReLu = (h_output > 0) * dh
+    grads['W1'] = X.T.dot(dh_ReLu) + reg * W1
+    grads['b1'] = np.sum(dh_ReLu, axis = 0)
+    
+    #############################################################################
+    #                              END OF YOUR CODE                             #
+    #############################################################################
 
-    id_matrix1 =(id_matrix.dot(W2.T))*(H1>0)
-    grads['W1'] = X.T.dot(id_matrix1) + reg*W1
-    grads['b1'] = np.sum(id_matrix1,axis=0)
     return loss, grads
 
   def train(self, X, y, X_val, y_val,
             learning_rate=1e-3, learning_rate_decay=0.95,
-            reg=5e-6, num_iters=100,
+            reg=1e-5, num_iters=100,
             batch_size=200, verbose=False):
     """
     Train this neural network using stochastic gradient descent.
@@ -147,7 +158,7 @@ class TwoLayerNet(object):
     train_acc_history = []
     val_acc_history = []
 
-    for it in range(num_iters):
+    for it in xrange(num_iters):
       X_batch = None
       y_batch = None
 
@@ -155,8 +166,13 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      batch_idx = np.random.choice(num_train,batch_size,replace = True)
-      X_batch,y_batch = X[batch_idx],y[batch_idx]
+      idx = np.random.choice(num_train, batch_size, replace=True)
+      X_batch = X[idx]
+      y_batch = y[idx]
+      # pass
+      #########################################################################
+      #                             END OF YOUR CODE                          #
+      #########################################################################
 
       # Compute loss and gradients using the current minibatch
       loss, grads = self.loss(X_batch, y=y_batch, reg=reg)
@@ -168,8 +184,15 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      self.params['W2'],self.params['W1'],self.params['b1'],self.params['b2'] = self.params['W2']-learning_rate*grads['W2'],self.params['W1']-learning_rate*grads['W1'],self.params['b1']-learning_rate*grads['b1'],self.params['b2']-learning_rate*grads['b2']
-      
+      self.params['W2'] += - learning_rate * grads['W2']
+      self.params['b2'] += - learning_rate * grads['b2']
+      self.params['W1'] += - learning_rate * grads['W1']
+      self.params['b1'] += - learning_rate * grads['b1']
+      # pass
+      #########################################################################
+      #                             END OF YOUR CODE                          #
+      #########################################################################
+
       if verbose and it % 100 == 0:
         print('iteration %d / %d: loss %f' % (it, num_iters, loss))
 
@@ -210,9 +233,15 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    W2,W1,b2,b1 = self.params['W2'],self.params['W1'],self.params['b2'],self.params['b1']
-    score = np.maximum(0,X.dot(W1)+b1).dot(W2)+b2
-    C_score = score - np.max(score,axis = 1).reshape(-1,1)
-    exp_score = np.exp(C_score)
-    y_pred = np.argmax(exp_score,axis=1).reshape(1,-1)
+    h = np.maximum(0, X.dot(self.params['W1']) + self.params['b1'])
+    scores = h.dot(self.params['W2']) + self.params['b2']
+    y_pred = np.argmax(scores, axis=1)
+    # pass
+    ###########################################################################
+    #                              END OF YOUR CODE                           #
+    ###########################################################################
+
     return y_pred
+
+
+
