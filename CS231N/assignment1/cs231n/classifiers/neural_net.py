@@ -169,7 +169,7 @@ class TwoLayerNet(object):
       # stored in the grads dictionary defined above.                         #
       #########################################################################
       self.params['W2'],self.params['W1'],self.params['b1'],self.params['b2'] = self.params['W2']-learning_rate*grads['W2'],self.params['W1']-learning_rate*grads['W1'],self.params['b1']-learning_rate*grads['b1'],self.params['b2']-learning_rate*grads['b2']
-      
+
       if verbose and it % 100 == 0:
         print('iteration %d / %d: loss %f' % (it, num_iters, loss))
 

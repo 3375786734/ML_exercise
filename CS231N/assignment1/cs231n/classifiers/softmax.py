@@ -38,7 +38,7 @@ def softmax_loss_naive(W, X, y, reg):
       dW[:,y[i]] -= X[i].T
       for j in range(num_class):
           dW[:,j] += (X[i].T)*(exp_score[j]/np.sum(exp_score))
-  loss = loss/num_data + reg*np.sum(W*W)
+  loss = loss/num_data + 0.5*reg*np.sum(W*W)
   dW = dW/num_data + reg*W
   return loss, dW
 
@@ -62,7 +62,7 @@ def softmax_loss_vectorized(W, X, y, reg):
   C_score = score_matrix - np.max(score_matrix,axis = 1).reshape(-1,1) #since we sum over axis ,hence we get all the column maximum for each coulmn
   exp_score = np.exp(C_score)/np.sum(np.exp(C_score),axis = 1).reshape(-1,1)
   #sum all the y_i
-  loss = -np.sum(np.log(exp_score[range(num_data),list(y)]))/num_data + reg*np.sum(W*W)
+  loss = -np.sum(np.log(exp_score[range(num_data),list(y)]))/num_data + 0.5*reg*np.sum(W*W)
 
 
   id_matrix = exp_score

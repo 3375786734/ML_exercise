@@ -4,6 +4,10 @@ import numpy as np
 from cs231n.classifiers.linear_svm import *
 from cs231n.classifiers.softmax import *
 
+
+'''
+Note that we only show the train and predict for softmax,if you want to use linear svm,please change it first.
+'''
 class LinearClassifier(object):
 
   def __init__(self):
@@ -55,7 +59,7 @@ class LinearClassifier(object):
       loss, grad = self.loss(X_batch, y_batch, reg)
       loss_history.append(loss)
 
-      
+
       # perform parameter update
       #########################################################################
       # Update the weights using the gradient and the learning rate.          #
@@ -107,6 +111,7 @@ class LinearClassifier(object):
     - gradient with respect to self.W; an array of the same shape as W
     """
     pass
+
 
 
 class LinearSVM(LinearClassifier):
