@@ -25,7 +25,7 @@ def affine_forward(x, w, b):
     # TODO: Implement the affine forward pass. Store the result in out. You   #
     # will need to reshape the input into rows.                               #
     ###########################################################################
-    x_reshape = x.reshape(x.shape[0],-1)
+    x_reshape = np.squeeze(x.reshape(x.shape[0],-1))
     out = x_reshape.dot(w)+b
     cache = (x, w, b)
     return out, cache
@@ -53,7 +53,7 @@ def affine_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
-    x_reshape = x.reshape(x.shape[0],-1)
+    x_reshape = np.squeeze(x.reshape(x.shape[0],-1))
     dx,dw,db = dout.dot(w.T),x_reshape.T.dot(dout),np.sum(dout,axis = 0)
     dx = dx.reshape(x.shape)
     return dx, dw, db
@@ -94,8 +94,8 @@ def relu_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
-    
-    
+    dx = dout*(x>=0)
+
     return dx
 
 
@@ -103,9 +103,9 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     """
     Forward pass for batch normalization.
 
-    During training the sample mean and (uncorrected) sample variance are
+    1.During training the sample mean and (uncorrected) sample variance are
     computed from minibatch statistics and used to normalize the incoming data.
-    During training we also keep an exponentially decaying running mean of the
+    2.During training we also keep an exponentially decaying running mean of the
     mean and variance of each feature, and these averages are used to normalize
     data at test-time.
 
@@ -146,6 +146,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     running_var = bn_param.get('running_var', np.zeros(D, dtype=x.dtype))
 
     out, cache = None, None
+    cur_mean ,cur_var = [],[]
     if mode == 'train':
         #######################################################################
         # TODO: Implement the training-time forward pass for batch norm.      #
@@ -168,10 +169,12 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # Referencing the original paper (https://arxiv.org/abs/1502.03167)   #
         # might prove to be helpful.                                          #
         #######################################################################
-        pass
-        #######################################################################
-        #                           END OF YOUR CODE                          #
-        #######################################################################
+        cur_mean ,cur_var = np.mean(x,axis = 0), np.var(x,axis = 0)
+        x_nor = (x - cur_mean)/np.sqrt(cur_var+eps)
+        out = gamma*x_nor + beta
+        running_var = momentum*running_var + (1-momentum)*cur_var
+        running_mean= momentum*running_mean + (1-momentum)*cur_mean
+        
     elif mode == 'test':
         #######################################################################
         # TODO: Implement the test-time forward pass for batch normalization. #
@@ -179,17 +182,14 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # then scale and shift the normalized data using gamma and beta.      #
         # Store the result in the out variable.                               #
         #######################################################################
-        pass
-        #######################################################################
-        #                          END OF YOUR CODE                           #
-        #######################################################################
+        x_nor = (x-running_mean)/np.sqrt(running_var+eps)
+        out = x_nor*gamma + beta
     else:
         raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
-
     # Store the updated running means back into bn_param
     bn_param['running_mean'] = running_mean
     bn_param['running_var'] = running_var
-
+    cache = (cur_mean,cur_var,x,eps,beta,gamma) 
     return out, cache
 
 
@@ -211,16 +211,21 @@ def batchnorm_backward(dout, cache):
     - dbeta: Gradient with respect to shift parameter beta, of shape (D,)
     """
     dx, dgamma, dbeta = None, None, None
+    cur_mean,cur_val,x,eps,beta,gamma = cache
+    print("here")
     ###########################################################################
     # TODO: Implement the backward pass for batch normalization. Store the    #
     # results in the dx, dgamma, and dbeta variables.                         #
     # Referencing the original paper (https://arxiv.org/abs/1502.03167)       #
     # might prove to be helpful.                                              #
     ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    N = x.shape[0]
+    dbeta = np.sum(dout,axis = 0)
+    B = gamma/np.sqrt(cur_val+eps)
+    X_nor = (x-cur_mean.reshape(1,-1))/np.sqrt(cur_val.reshape(1,-1)+eps)
+    dgamma = np.sum(dout*X_nor,axis = 0)
+    dx = dout*(B.reshape(1,-1)) + 
+    #NOTE: var and mean is function of X,hence dx needs to take gradient respect to mean and var into consideration.
 
     return dx, dgamma, dbeta
 
@@ -249,10 +254,6 @@ def batchnorm_backward_alt(dout, cache):
     # single statement; our implementation fits on a single 80-character line.#
     ###########################################################################
     pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
-
     return dx, dgamma, dbeta
 
 

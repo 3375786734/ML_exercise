@@ -10,14 +10,13 @@ import numpy as np
 
 from cs231n import optim
 
-
 class Solver(object):
     """
     A Solver encapsulates all the logic necessary for training classification
     models. The Solver performs stochastic gradient descent using different
     update rules defined in optim.py.
 
-    The solver accepts both training and validataion data and labels so it can
+    NOTE THAT:The solver accepts both training and validataion data and labels so it can
     periodically check classification accuracy on both training and validation
     data to watch out for overfitting.
 
