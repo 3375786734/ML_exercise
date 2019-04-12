@@ -135,8 +135,14 @@ def adam(w, dw, config=None):
     # NOTE: In order to match the reference output, please modify t _before_  #
     # using it in any calculations.                                           #
     ###########################################################################
-    config['m'] = config['beta1']*config['m'] + (1-config['beta1'])*dw
-    config['v'] = config['beta2']*config['v'] + (1-config['beta2'])*(dw**2)
-    next_w = w - config['learning_rate']*config['m']/(np.sqrt(config['v'])+config['epsilon'])
+    #config['m'] = config['beta1']*config['m'] + (1-config['beta1'])*dw
+    #config['v'] = config['beta2']*config['v'] + (1-config['beta2'])*(dw**2)
+    #next_w = w - config['learning_rate']*config['m']/(np.sqrt(config['v'])+config['epsilon'])
+    config['t'] += 1
+    config['m'] = config['beta1'] * config['m'] + (1 - config['beta1']) * dw
+    config['v'] = config['beta2'] * config['v'] + (1 - config['beta2']) * (dw**2)
+    mb = config['m'] / (1 - config['beta1']**config['t'])
+    vb = config['v'] / (1 - config['beta2']**config['t'])
+    next_w = w - config['learning_rate'] * mb / (np.sqrt(vb) + config['epsilon'])
 
     return next_w, config
