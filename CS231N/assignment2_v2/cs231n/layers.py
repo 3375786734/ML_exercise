@@ -428,7 +428,7 @@ def conv_forward_naive(x, w, b, conv_param):
 
     Input:
     - x: Input data of shape (N, C, H, W)
-    - w: Filter weights of shape (F, C, HH, WW)
+    - w:  Filter weights of shape (F, C, HH, WW)
     - b: Biases, of shape (F,)
     - conv_param: A dictionary with the following keys:
       - 'stride': The number of pixels between adjacent receptive fields in the
@@ -465,7 +465,6 @@ def conv_forward_naive(x, w, b, conv_param):
     cache = (x, w, b, conv_param)
     return out, cache
 
-
 def conv_backward_naive(dout, cache):
     """
     A naive implementation of the backward pass for a convolutional layer.
@@ -483,7 +482,10 @@ def conv_backward_naive(dout, cache):
     ###########################################################################
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
-    pass
+    x,w,b,conv_param = cache
+    H,W,HH,WW = x.shape[2],x.shape[3],w.shape[2],w.shape[3]
+    C,F = x.shape[1],w.shape[0]
+
     return dx, dw, db
 
 
