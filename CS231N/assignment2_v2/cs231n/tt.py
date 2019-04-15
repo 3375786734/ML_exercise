@@ -4,3 +4,4 @@ b = a[range(a.shape[0]),range(a.shape[0])]
 print(b.shape)
 c = np.diag(a)
 print(c)
+d = {}

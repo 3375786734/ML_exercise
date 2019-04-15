@@ -174,6 +174,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         out = gamma*x_nor + beta
         running_var = momentum*running_var + (1-momentum)*cur_var
         running_mean= momentum*running_mean + (1-momentum)*cur_mean
+
+        cache = (gamma, x, cur_mean, cur_var, eps, x_nor) 
     elif mode == 'test':
         #######################################################################
         # TODO: Implement the test-time forward pass for batch normalization. #
@@ -189,7 +191,6 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     bn_param['running_mean'] = running_mean
     bn_param['running_var'] = running_var
     #cache = (cur_mean,cur_var,x,eps,beta,gamma) 
-    cache = (gamma, x, cur_mean, cur_var, eps, x_nor) 
     return out, cache
 
 
@@ -272,7 +273,7 @@ def batchnorm_backward_alt(dout, cache):
     '''
     dgamma = np.sum(x_hat * dout, axis = 0)
     dbeta = np.sum(dout , axis = 0)
-    AA = gamma * (dout - np.mean(dout,axis = 0))/np.sqrt(sample_var+eps) 
+    AA = gamma * (dout - np.mean(dout,axis = 0))/np.sqrt(sample_var+eps)
     BB = (((dout-np.mean(dout,axis = 0)).T).dot((x - np.mean(x,axis = 0))))[range(dout.shape[1]),range(x.shape[1])]
     dx = AA - BB*gamma*np.power((sample_var+eps),-1.5)*(x-np.mean(x,axis = 0))/N
     return dx, dgamma, dbeta
@@ -311,8 +312,10 @@ def layernorm_forward(x, gamma, beta, ln_param):
     # transformations you could perform, that would enable you to copy over   #
     # the batch norm code and leave it almost unchanged?                      #
     ###########################################################################
-    pass 
-    
+    sample_mean,sample_var = np.mean(x,axis =1),np.var(x,axis = 1)
+    x_nor = (x-sample_mean.reshape(-1,1))/np.sqrt(sample_var.reshape(-1,1)+eps)
+    out = gamma*x_nor +beta
+    cache = (gamma, x, sample_mean, sample_var, eps, x_nor) 
     return out, cache
 
 
@@ -340,12 +343,16 @@ def layernorm_backward(dout, cache):
     # implementation of batch normalization. The hints to the forward pass    #
     # still apply!                                                            #
     ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
-    return dx, dgamma, dbeta
-
+    gamma, x, sample_mean, sample_var, eps, x_nor = cache
+    dgamma = np.sum(x_nor*dout,axis  = 0)
+    dbeta = np.sum(dout,axis = 0)
+    dout,x = (gamma*dout).T,x.T   #One thing should be carefule,that is we should first *gamma to dout,since gamma still implement on column,but sample_var and mean is implemented on row here.
+    N = dout.shape[0]
+    AA = (dout - np.mean(dout,axis = 0))/np.sqrt(sample_var+eps)
+    BB = (((dout-np.mean(dout,axis = 0)).T).dot((x - np.mean(x,axis = 0))))[range(dout.shape[1]),range(x.shape[1])]
+    dx = AA - BB*np.power((sample_var+eps),-1.5)*(x-np.mean(x,axis = 0))/N
+    dx = dx.T
+    return dx,dgamma,dbeta
 
 def dropout_forward(x, dropout_param):
     """
@@ -602,20 +609,14 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     out, cache = None, None
     ###########################################################################
     # TODO: Implement the forward pass for spatial batch normalization.       #
-    #                                                                         #
     # HINT: You can implement spatial batch normalization by calling the      #
     # vanilla version of batch normalization you implemented above.           #
     # Your implementation should be very short; ours is less than five lines. #
     ###########################################################################
-    momentum,eps,running_mean,running_var= bn_params['momentum'],bn_params['eps'],bn_params['running_mean'],bn_params['running_var']
-    if bn_params['mode']  == 'train':
-        cur_mean,cur_var = np.mean(x,axis(0,2,3)),np.var(x,axis(0,2,3))
-        out = gamma[None,:,None,None]*(x-cur_mean[None,:,None,None])/(sqrt(cur_var+eps)[None,:,None,None])
-    else:
-        running_mean = momentum*running_mean+(1-momentum)*cur_mean
-        running_var = momentum*running_var + (1-momentum) *cur_var
-    bn_params['running_mean'],bn_params['running_var'] = running_mean,running_var
-    cache = (cur_mean,cur_var,eps,gamma,x)
+    N,C,H,W = x.shape
+    x_reshape = np.transpose(x,(0,3,2,1)).reshape(N*H*W,C)
+    tmp_out,cache = batchnorm_forward(x_reshape,gamma,beta,bn_param)
+    out = tmp_out.reshape(N,W,H,C).transpose(0,3,2,1)
     return out, cache
 
 
@@ -633,7 +634,6 @@ def spatial_batchnorm_backward(dout, cache):
     - dbeta: Gradient with respect to shift parameter, of shape (C,)
     """
     dx, dgamma, dbeta = None, None, None
-    cur_mean,cur_var,eps,gamma,x = cache
     ###########################################################################
     # TODO: Implement the backward pass for spatial batch normalization.      #
     #                                                                         #
@@ -641,8 +641,9 @@ def spatial_batchnorm_backward(dout, cache):
     # vanilla version of batch normalization you implemented above.           #
     # Your implementation should be very short; ours is less than five lines. #
     ###########################################################################
-    dbeta = np.sum()
-    dgamma = 
+    N,C,H,W = dout.shape
+    dx,dgamma,dbeta = batchnorm_backward(dout.transpose(0,3,2,1).reshape(N*H*W,C),cache)
+    dx = np.reshape(dx,(N,W,H,C)).transpose(0,3,2,1)
     return dx, dgamma, dbeta
 
 
