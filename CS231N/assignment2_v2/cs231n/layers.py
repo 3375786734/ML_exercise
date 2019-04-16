@@ -491,7 +491,6 @@ def conv_backward_naive(dout, cache):
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
     x, w, b, conv_param = cache
-  
     N, C, H, W = x.shape
     F, _, HH, WW = w.shape
     stride, pad = conv_param['stride'], conv_param['pad']
@@ -668,6 +667,7 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     """
     out, cache = None, None
     eps = gn_param.get('eps',1e-5)
+    N,C,H,W = x.shape
     ###########################################################################
     # TODO: Implement the forward pass for spatial group normalization.       #
     # This will be extremely similar to the layer norm implementation.        #
@@ -675,10 +675,20 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     # the bulk of the code is similar to both train-time batch normalization  #
     # and layer normalization!                                                # 
     ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    '''
+    #Optinal way.
+    x = x.reshape(G*N,(C//G)*H*W)
+    x = x.T
+    cur_mean,cur_var = np.mean(x,axis = 0),np.var(x,axis = 0)
+    x_nor = (x-cur_mean)/np.sqrt(cur_var+eps)
+    x_nor = np.reshape(x_nor.T,(N,C,H,W))
+    out = gamma[None,:,None,None]*x_nor + beta[None,:,None,None]
+    cache = (x_nor,x,gamma,eps,cur_mean,cur_var,G)
+    '''
+    #TODO
+    x = x.reshape(N*G,(C//G)*H*W)
+    out,cache = batchnorm_forward(x,)
+    out = out.transpose(1,0,2,3)
     return out, cache
 
 
@@ -696,14 +706,10 @@ def spatial_groupnorm_backward(dout, cache):
     - dbeta: Gradient with respect to shift parameter, of shape (C,)
     """
     dx, dgamma, dbeta = None, None, None
-
+    x_nor,x,gamma,eps,cur_mean,cur_var,G = cache
     ###########################################################################
     # TODO: Implement the backward pass for spatial group normalization.      #
     # This will be extremely similar to the layer norm implementation.        #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
     ###########################################################################
     return dx, dgamma, dbeta
 
