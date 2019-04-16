@@ -251,7 +251,7 @@ class FullyConnectedNet(object):
         Input / output: Same as TwoLayerNet above.
         """
         X = X.astype(self.dtype)
-        mode = 'test' if y is None else 'train'
+        mode = 'test' if y is None else 'train'  #use y as flag for mode
 
         # Set train/test mode for batchnorm params and dropout param since they
         # behave differently during training and testing.

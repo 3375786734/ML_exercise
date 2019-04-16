@@ -671,31 +671,25 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     ###########################################################################
     # TODO: Implement the forward pass for spatial group normalization.       #
     # This will be extremely similar to the layer norm implementation.        #
+    #                                                                         #
     # In particular, think about how you could transform the matrix so that   #
     # the bulk of the code is similar to both train-time batch normalization  #
     # and layer normalization!                                                # 
     ###########################################################################
-    '''
     #Optinal way.
-    x = x.reshape(G*N,(C//G)*H*W)
-    x = x.T
-    cur_mean,cur_var = np.mean(x,axis = 0),np.var(x,axis = 0)
-    x_nor = (x-cur_mean)/np.sqrt(cur_var+eps)
+    gamma,beta = np.squeeze(gamma),np.squeeze(beta)
+    x_reshape = x.reshape(G*N,(C//G)*H*W).T
+    cur_mean,cur_var = np.mean(x_reshape,axis = 0),np.var(x_reshape,axis = 0)
+    x_nor = (x_reshape-cur_mean)/np.sqrt(cur_var+eps)
     x_nor = np.reshape(x_nor.T,(N,C,H,W))
     out = gamma[None,:,None,None]*x_nor + beta[None,:,None,None]
     cache = (x_nor,x,gamma,eps,cur_mean,cur_var,G)
-    '''
-    #TODO
-    x = x.reshape(N*G,(C//G)*H*W)
-    out,cache = batchnorm_forward(x,)
-    out = out.transpose(1,0,2,3)
     return out, cache
 
 
 def spatial_groupnorm_backward(dout, cache):
     """
     Computes the backward pass for spatial group normalization.
-
     Inputs:
     - dout: Upstream derivatives, of shape (N, C, H, W)
     - cache: Values from the forward pass
@@ -707,10 +701,20 @@ def spatial_groupnorm_backward(dout, cache):
     """
     dx, dgamma, dbeta = None, None, None
     x_nor,x,gamma,eps,cur_mean,cur_var,G = cache
+    N,C,H,W = dout.shape
     ###########################################################################
     # TODO: Implement the backward pass for spatial group normalization.      #
     # This will be extremely similar to the layer norm implementation.        #
     ###########################################################################
+    block = C//G
+    dgamma ,dbeta = np.zeros(C),np.zeros(C)
+    for i in range(block):
+        stp,endp = i*G,(i+1)*G
+        block_x_nor,block_dout = x_nor[:,stp:endp,...].reshape(N,-1),dout[:,stp:endp,...].reshape(N,-1)
+        block_gamma,block_x = gamma[stp:endp],x[:,stp:endp,...].reshape(N,-1)
+        block_mean,block_var = cur_mean[stp:endp],cur_var[stp:endp]
+        tmpdx,dgamma[stp:endp],dbeta[stp:endp] = layernorm_backward(block_dout,cache = (block_gamma,block_x,block_mean,block_var,eps,block_x_nor))
+    #TODO:
     return dx, dgamma, dbeta
 
 
